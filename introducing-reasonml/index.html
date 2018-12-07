@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Introducing ReasonML</title>
+    <meta charset="utf-8" />
+    <!--
+      <link href="https://fonts.googleapis.com/css?family=Roboto+Slab" rel="stylesheet">
+    -->
+    <style>
+      /* body {
+        font-family: 'Roboto Slab', serif;
+      } */
+
+      img {
+        max-width: 100%;
+      }
+
+      pre {
+        margin: 0;
+      }
+
+      .remark-slide-content h1 {
+        font-size: 60px;
+      }
+
+      .remark-slide-content {
+        padding: 1em 1em;
+        font-size: 42px;
+      }
+
+      .remark-code {
+        font-size: 28px;
+      }
+
+      .small-code .remark-code {
+        font-size: 16px;
+      }
+      .small-code .remark-slide-content {
+        font-size: 20px;
+      }
+
+      .two-column .column,
+      .two-column > pre {
+        width: 48%;
+        float: left;
+        margin-right: 1%;
+      }
+
+      .three-column .column,
+      .three-column pre {
+        width: 30%;
+        float: left;
+        margin-right: 1%;
+      }
+
+      .four-column .column,
+      .four-column pre {
+        width: 22%;
+        float: left;
+        margin-right: 1%;
+      }
+
+      ul p {
+        margin: 0 0 1em 0;
+      }
+
+      .flex {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: column;
+        height: 500px;
+      }
+
+      .flex pre {
+        width: 49%;
+      }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# Introducing ReasonML
+
+---
+
+class: center, middle
+
+Khoa Nguyen<br/>
+`@thangngoc89` (everywhere)<br/>
+[Sketch.sh](https://sketch.sh)<br/>
+
+---
+
+class: center, middle
+
+![](images/reason.svg)
+
+SYNTAX AND TOOLCHAIN FOR OCAML
+---
+
+class: center, middle
+
+![](images/ocaml.svg)
+
+---
+
+# OCaml
+
+- General purposes programing language
+
+--
+
+- ML - Meta language
+
+--
+
+- 25 years old
+
+---
+
+class: center, middle
+![](./images/toolchain.svg)
+
+---
+
+class: center, middle
+
+WHY?<br/>
+WHY?<br/>
+WHY?<br/>
+
+---
+
+# Why? 
+
+- Incredible performances
+
+--
+
+- Functional but permissive
+
+--
+
+- Extremely nice type system
+
+--
+
+- Type inference
+
+--
+
+- Targeting JS and Native
+
+
+???
+Incredible and predictable performances
+immutable -> mutable 
+pure -> side effects 
+Object code (O in OCaml)
+
+hindley milner
+---
+
+class: center, middle
+
+Bucklescript<br/>
+Bucklescript<br/>
+Bucklescript<br/>
+
+---
+
+# Bucklescript
+
+- Lightning compilation
+- Human readable code
+- npm/yarn workflow
+- Extremely nice interop story
+---
+
+# Key points
+
+- Familiar
+- Types
+- Toolchain
+- Interop
+
+---
+
+# Familiar syntax
+
+```reasonml
+let add = (a, b) => a + b;
+add(1, 2);
+```
+
+---
+
+# Types
+
+```reasonml
+let add = (a, b) => a + b;
+add(1, "2");
+```
+
+--
+
+![](images/type-error-add.png)
+
+---
+
+# Named arguments
+
+```reasonml
+let pet = (~kind, ~name) => 
+	"I have a " ++ kind ++ " name " ++ name;
+```
+
+--
+
+Order doesn't matter
+
+```reasonml
+pet(~kind="dog", ~name="Robin");
+```
+
+--
+
+```reasonml
+pet(~name="Meow", ~kind="cat");
+```
+
+---
+
+# Records
+
+```reasonml
+type person = { age: int, name: string };
+
+let me      = { age: 24, name: "Khoa" };
+```
+
+--
+
+Immutable record update
+
+```reasonml
+let meNextYear = {...me, age: 25};
+```
+
+---
+
+class: small-code
+
+# Variants and pattern-matching
+
+```reasonml
+type animal = Dog | Cat | Bird | Other(string);
+
+let sound = (animal) => {
+  switch (animal) {
+  | Dog => "woof"
+  }
+}
+```
+
+--
+
+Not exhaustive pattern matching
+
+```
+You forgot to handle a possible value here, for example:
+(Cat|Bird|Other(_))
+```
+
+
+---
+
+# Variants and pattern-matching
+
+```reasonml
+type animal = Dog | Cat | Bird | Other(string);
+
+let sound = (animal) => {
+  switch (animal) {
+  | Dog => "woof"
+  | Cat => "meow"
+  | Bird => "chirping"
+  | Other(animalSound) => animalSound
+  }
+}
+```
+
+---
+
+class: small-code
+## Pattern-matching in action
+
+```js
+// NotLoaded
+{ loading: false, data: null, error: null }
+// Loading
+{ loading: true, data: null, error: null }
+// Success
+{ loading: false, data: "Lorem ipsum", error: null }
+// Error
+{ loading: false, data: null, error: "Can't not load data" }
+```
+
+---
+
+What to do? 
+
+```js
+{ loading: false, data: "Lorem ipsum", error: "Can't not load data"}
+```
+
+---
+
+class: middle, center
+
+# Make illegal states impossible
+
+---
+
+# Make illegal states impossible
+
+```reasonml
+type state = NotLoaded | Loading | Success(string) | Error(string)
+
+let render = (state) => {
+  switch(state) {
+  | NotLoaded => ...
+  | Loading => ...
+  | Success(content) => ...
+  | Error(string) => ...
+  }
+}
+```
+
+---
+
+# No null or undefined
+
+```reasonml
+type option('a) = | None | Some('a);
+
+let pet = Some("dog")
+
+switch (pet) {
+| None => "This person has no pet"
+| Some(animal) => "This person has a " ++ animal
+}
+```
+
+---
+
+# Modules
+
+- No import/export
+- Every single .re file is a module
+
+---
+
+![](./images/modules.png)
+
+---
+
+# Types? 
+
+- Fast feedback
+- Confidence
+- Toolings
+- Data structures
+
+???
+think of data first, and method to works on it 
+instead of methods that passing data around
+
+---
+
+# ReasonML types
+
+- 100% coverage
+- Inference 
+- Type soundness
+
+---
+
+# Interop
+
+```reasonml
+Js.log("This is reason code");
+
+[%%bs.raw 
+  {| console.log('Here is some javascript for you');|}
+];
+```
+
+Generated code
+
+```js
+'use strict';
+
+console.log("This is reason code");
+console.log('here is some javascript for you');
+```
+
+---
+
+# Interop
+
+```reasonml
+let pi = 3.14;
+let sphereVolume = (r) => 4. /. 3. *. pi *. (r ** 3);
+```
+
+--
+
+More accurate PI
+
+```reasonml
+[@bs.val] external pi: float = "Math.PI";
+let sphereVolume = (r) => 4. /. 3. *. pi *. (r ** 3);
+```
+
+---
+class: middle, center
+
+# ReasonReact
+
+???
+router, best pratices, reducers
+
+---
+
+# ReasonReact
+
+```reasonml
+let component = ReasonReact.statelessComponent("App");
+
+let make = (~message, children) => {
+  ...component,
+  render: _self => {
+    <div className="App">
+      <p> {ReasonReact.string(message)} </p>
+    </div>
+  }
+}
+```
+
+---
+
+class: small-code
+
+```reasonml
+type state = {
+  count: int,
+};
+
+type action =
+  | Click;
+
+let component = ReasonReact.reducerComponent("Counter");
+
+let make = (children) => {
+  ...component,
+  initialState: () => {count: 0},
+  reducer: (action, state) =>
+    switch (action) {
+    | Click => ReasonReact.Update({...state, count: state.count + 1})
+    },
+  render: self => {
+    let message =
+      "You've clicked this "
+      ++ string_of_int(self.state.count)
+      ++ " times(s)";
+    <div>
+      <button onClick={_event => self.send(Click)}>
+        {ReasonReact.string(message)}
+      </button>
+    </div>;
+  },
+};
+```
+
+---
+
+class: middle, center
+# Toolchain
+
+![](./images/js-toolchain.png)
+
+---
+
+# Getting started with ReasonML and Bucklescript
+
+```
+npm install -g bs-platform
+bsb -init my-app -theme react
+```
+
+---
+
+# Adding ReasonReact to existing React application
+
+```sh
+npx create-react-app my-app
+cd my-app
+npm install bs-platform reason-react
+```
+
+---
+
+MESSENGER.COM
+- < 100ms build
+- 10 bugs /year
+- Days->Mins refactor
+
+---
+
+class: middle, center
+
+# Should I use ReasonML today? 
+
+---
+
+# The hard parts
+
+- Steep learning curve
+- Writing bindings is boring and sometimes frustrating
+
+??? 
+Learn ReasonML's semantics
+
+---
+
+- Immature
+- Small ecosystem
+- New community
+
+---
+
+# Resources
+
+## Documentation
+- [ReasonML documentation](https://reasonml.github.io/)
+- [ReasonReact documentation](https://reasonml.github.io/reason-react)
+- [Reason Syntax cheat sheet](https://reasonml.github.io/docs/en/syntax-cheatsheet)
+- [Sketch.sh (Online REPL)](https://sketch.sh/)
+
+---
+
+# Resources
+
+## Support and community
+- [ReasonML Discord channel](https://discord.gg/JDnHTjX)
+- [ReasonML Forum](https://reasonml.chat)
+
+---
+
+class: middle, center
+
+# Thanks!
+
+    </textarea>
+    <script src="remark-latest.min.js"></script>
+    <script>
+      var slideshow = remark.create({
+        ratio: "16:9",
+        highlightLanguage: true,
+        highlightLines: true,
+        highlightSpans: true,
+        excludedClasses: ["skip"],
+        slideNumberFormat: "",
+      });
+    </script>
+
+    <script id="__bs_script__">
+      //<![CDATA[
+      document.write(
+        "<script async src='http://HOST:3000/browser-sync/browser-sync-client.js?v=2.26.3'><\/script>".replace(
+          "HOST",
+          location.hostname
+        )
+      );
+      //]]>
+    </script>
+  </body>
+
+  <!--
+    # Resources
+
+    - [OCaml cheat sheet](http://www.ocamlpro.com/files/ocaml-lang.pdf)
+    - [Standard library cheat sheet](http://www.ocamlpro.com/files/ocaml-stdlib.pdf)
+    - [Reason Syntax cheat sheet](https://reasonml.github.io/docs/en/syntax-cheatsheet)
+    - [`ocaml-graphql-server` documentation](https://andreas.github.io/ocaml-graphql-server/graphql-lwt/Graphql_lwt/Schema/index.html)
+    - [`ocaml-graphql-server` examples](https://github.com/andreas/ocaml-graphql-server#examples)
+    - [Sketch.sh (Online REPL)](https://sketch.sh/)
+  -->
+</html>
